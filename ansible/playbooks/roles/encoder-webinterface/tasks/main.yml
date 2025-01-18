@@ -1,2 +1,2 @@
 ---
-- include: install_packages.yml
+- import_tasks: config_nginx_sreview.yml

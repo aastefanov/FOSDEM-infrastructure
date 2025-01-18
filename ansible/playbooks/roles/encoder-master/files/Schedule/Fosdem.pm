@@ -15,7 +15,9 @@ has 'pretalx_data' => (
 sub _build_pretalx_data {
 	my $self = shift;
 
-	return $self->talk_object->pretalx_data->{speakers}{$self->upstreamid};
+	my $rv = $self->talk_object->pretalx_data->{speakers}{$self->upstreamid};
+        die "Could not find speaker called " . $self->name . " with upstream id " . $self->upstreamid . " for talk " . $self->talk_object->titl . " in pretalx data" unless $rv;
+        return $rv;
 }
 
 sub _load_email {
@@ -38,7 +40,12 @@ has 'pretalx_data' => (
 );
 
 sub _build_pretalx_data {
-	return shift->talk_object->pretalx_data->{track};
+        my $self = shift;
+	my $rv = $self->talk_object->pretalx_data->{track};
+
+        die "Could not find track for talk " . $self->talk_object->title . " in pretalx data" unless $rv;
+
+        return $rv;
 }
 
 sub _load_email {
@@ -62,10 +69,42 @@ has 'pretalx_data' => (
 	builder => '_build_pretalx_data',
 );
 
+has '+title' => (
+	trigger => \&_set_title,
+);
+
+has '+subtitle' => (
+	predicate => 'has_subtitle',
+);
+
+sub _set_title {
+	my ($self, $new_title) = @_;
+	if($new_title =~ /^REPLACEMENT: (.*)/) {
+		$self->title($1);
+	}
+	return if $self->has_subtitle;
+	if($new_title =~ /^(?<title>[^:-]+)[ :-]+(?<subtitle>.*$)/) {
+		$self->subtitle($+{subtitle});
+		$self->title($+{title});
+	}
+}
+
+sub _load_filtered {
+        my $self = shift;
+        if(!defined($self->event_object->root_object->pretalx_data->{$self->upstreamid})) {
+                return 1;
+        }
+        return 0;
+}
+
 sub _build_pretalx_data {
 	my $self = shift;
 
 	my $data = $self->event_object->root_object->pretalx_data->{$self->upstreamid};
+
+        if(!defined($data)) {
+                return {};
+        }
 	$data->{speakers} = {};
 	foreach my $speaker(@{$data->{persons}}) {
 		$data->{speakers}{$speaker->{person_id}} = $speaker;

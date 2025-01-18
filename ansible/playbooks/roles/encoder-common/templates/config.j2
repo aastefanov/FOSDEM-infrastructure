@@ -7,8 +7,8 @@ $published_headers = {
 
 $schedule_format = "fosdem";
 $schedule_options = { 
-	url => "https://fosdem.org/2024/schedule/xml",
-	pretalx_url => 'https://pretalx.fosdem.org/fosdem-2024/p/matrix/',
+	url => "https://fosdem.org/2025/schedule/xml",
+	pretalx_url => 'https://pretalx.fosdem.org/fosdem-2025/p/matrix/',
 	pretalx_api_key => "{{sreview_pretalx_api_key}}",
 };
 
@@ -25,14 +25,14 @@ $email_from = 'noreply@fosdem.org';
 # A filename of a Mojo::Template template to process, returning the email body. Required if notify_actions includes email.
 $notify_email_template = '/srv/sreview/assets/notify-email.ep';
 
-$notify_email_subject = "Your FOSDEM 2024 talk titled '<%== \$title %>'\\";
+$notify_email_subject = "Your FOSDEM 2025 talk titled '<%== \$title %>'\\";
 
 $announce_email_template = '/srv/sreview/assets/announce-email.ep';
 
-$announce_email_subject = "RELEASED: Your FOSDEM 2024 talk titled '<%== \$title %>'\\";
+$announce_email_subject = "RELEASED: Your FOSDEM 2025 talk titled '<%== \$title %>'\\";
 
 # The default event to handle in the webinterface. Ignored by all other parts of sreview.
-$event = 'FOSDEM 2024';
+$event = 'FOSDEM 2025';
 
 $extra_profiles = {
         FOSDEM => {
@@ -136,6 +136,7 @@ $state_actions = {
   'fixuping' => 'qsub -q hiprio.q -cwd -V -b y -e <%== $output_dir %> -o <%== $output_dir %> -N fix_<%== $talkid %> /usr/bin/sreview-skip <%== $talkid %>',
   'notify_final' => 'qsub -q hiprio.q -cwd -V -b y -e <%== $output_dir %> -o <%== $output_dir %> -N fnt_<%== $talkid %> /usr/bin/sreview-skip <%== $talkid %>',
   'finalreview' => 'qsub -q hiprio.q -cwd -V -b y -e <%== $output_dir %> -o <%== $output_dir %> -N frv_<%== $talkid %> /usr/bin/sreview-skip <%== $talkid %>',
+  'injecting' => 'qsub -q hiprio.q -cwd -V -b y -e <%== $output_dir %> -o <%== $output_dir %> -N inj_<%== $talkid %> /usr/bin/sreview-inject-job <%== $talkid %>',
 };
 
 # An array of commands to run on each file to be uploaded. Each component is passed through Mojo::Template before processing. To avoid quoting issues, it is a two-dimensional array, so that no shell will be called to run this.
@@ -159,13 +160,13 @@ $urlbase = 'https://review.video.fosdem.org';
 
 $cleanup = 'previews';
 
-$eventurl_format = 'https://video.fosdem.org/2024/<%= $room_output %>/<%= $slug %>.av1.webm';
+$eventurl_format = 'https://video.fosdem.org/2025/<%= $room_output %>/<%= $slug %>.av1.webm';
 $audio_multiplex_mode = 'stream';
 $command_tune={bs1770gain => "0.5"};
 
 $inject_collection = "upload";
 $extra_collections = {
-  upload => "/srv/sreview/upload",
+  upload => "/srv/sreview/storage/upload",
 };
 $accessmethods = {
   'input' => 'HTTP::nginx::JSON',
@@ -175,9 +176,7 @@ $accessmethods = {
 };
 $normalizer = 'ffmpeg';
 
-$inject_fatal_checks = {
-  duration => { talkattr_max => "scheduled_length" },
-};
+$inject_fatal_checks = { };
 
 $inject_transcode_skip_checks = {
   video_codec => { val => "h264" },
@@ -186,8 +185,6 @@ $inject_transcode_skip_checks = {
   video_width => { val => "1280" },
   video_height => { val => "720" },
 };
-
-$review_template="full";
 
 $video_multi_profiles = {
   'av1' => 0,
